@@ -1,3 +1,14 @@
+# Weekly supervised segmentation using scribble
+
+
+## For training
+``` 
+python main.py --mixup_alpha 0.5 --graph True --n_labels 3 --eta 0.2 --beta 1.2 --gamma 0.5 --neigh_size 4 --transport True --t_size 4 --t_eps 0.8 --epochs 1 --output_dir './data2/MSCMR_cycleMix/'
+```
+
+
+
+
 # CycleMix: A Holistic Strategy for Medical Image Segmentation from Scribble Supervision
 This project is developed for our CVPR 2022 paper: [CycleMix: A Holistic Strategy for Medical Image Segmentation from Scribble Supervision](https://arxiv.org/abs/2203.01475). Our code is implemented based on the [PuzzleMix](https://github.com/snu-mllab/PuzzleMix), but is also applicable to other mixup-based augmentation methods. For more information about CycleMix, please read the following paper:
 

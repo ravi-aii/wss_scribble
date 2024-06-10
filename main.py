@@ -20,7 +20,17 @@ from data import build
 from engines import train_one_epoch
 from inference import infer, evaluate
 from models import build_model
+import gc
 
+
+# torch.cuda.empty_cache()
+# gc.collect() 
+# del variables
+
+print(torch.cuda.memory_summary(device=None, abbreviated=False)) 
+# os.environ["CUDA_LAUNCH_BLOCKING"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:1024"
 
 def get_args_parser():
     # define task, label values, and output channels
@@ -29,7 +39,7 @@ def get_args_parser():
         }
     parser = argparse.ArgumentParser('Set transformer detector', add_help=False)
     parser.add_argument('--lr', default=1e-4, type=float)
-    parser.add_argument('--batch_size', default=4, type=int)
+    parser.add_argument('--batch_size', default=2, type=int)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=6000, type=int)
     parser.add_argument('--lr_drop', default=2000, type=int)
@@ -80,7 +90,7 @@ def get_args_parser():
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda', type=str,
                         help='device to use for training / testing')
-    parser.add_argument('--GPU_ids', type=str, default = '5', help = 'Ids of GPUs')    
+    parser.add_argument('--GPU_ids', type=str, default = '0', help = 'Ids of GPUs')    
     parser.add_argument('--seed', default=42, type=int)
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
@@ -183,6 +193,9 @@ def main(args):
     best_dic = None
     best_dice = None
     for epoch in range(args.start_epoch, args.epochs):
+        torch.cuda.empty_cache()
+        gc.collect()
+
         # use cyclic learning rate
         # optimizer.param_groups[0]['lr'] = clr.cyclic_learning_rate(epoch, mode='exp_range', gamma=1)
         train_stats = train_one_epoch(model, criterion, dataloader_train_dict, optimizer, device, epoch,args,writer)
@@ -230,8 +243,13 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('MSCMR training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
+    print("###########output_dir:",args.output_dir)
+    print(Path(args.output_dir))
+    print(os.path.dirname(args.output_dir))
     if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+        os.makedirs(os.path.dirname(args.output_dir), exist_ok=True)
+        # Path(args.output_dir).mkdir(parents=True,exist_ok=True)
+        # print(Path(args.output_dir).mkdir(parents=True, exist_ok=True))
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.GPU_ids)
     main(args)
